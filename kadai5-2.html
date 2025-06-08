@@ -1,21 +1,46 @@
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="utf-8">
-    <title>演習課題5-2：外部APIの呼び出しテスト</title>
+    <meta charset="UTF-8">
+    <title>ポケモン検索</title>
 </head>
 <body>
-    <h1 id="msg">何かのAPI</h1>
-    <form name="apiform"><p>
-        何かのフォーム：<input type="text" name="form_data">
-        <button type="button" id="btn1" onclick="some_api(this.form)">実行</button>
-    </p></form>
-    
-    <div id="result"></div>
+    <h1>ポケモン情報検索</h1>
+
+    <form onsubmit="event.preventDefault(); fetchPokemon();">
+        ポケモン名（英語）: <input type="text" id="pokemonName" placeholder="例: pikachu">
+        <button type="submit">検索</button>
+    </form>
+
+    <div id="result" style="margin-top: 1em;"></div>
+
     <script>
-        async function some_api(myForm) {
-            // ここにコードを書く
-            document.getElementById("result").innerHTML += myForm.form_data.value+"<br />";
-            document.apiform.reset();
+        async function fetchPokemon() {
+            const nameInput = document.getElementById("pokemonName").value.trim().toLowerCase();
+            const url = `https://pokeapi.co/api/v2/pokemon/${nameInput}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("見つかりませんでした");
+
+                const data = await response.json();
+
+                const name = data.name;
+                const height = data.height;
+                const weight = data.weight;
+                const image = data.sprites.front_default;
+                const types = data.types.map(t => t.type.name).join(", ");
+
+                document.getElementById("result").innerHTML = `
+                    <p><strong>名前:</strong> ${name}</p>
+                    <p><strong>タイプ:</strong> ${types}</p>
+                    <p><strong>高さ:</strong> ${height / 10} m</p>
+                    <p><strong>重さ:</strong> ${weight / 10} kg</p>
+                    <img src="${image}" alt="${name}" />
+                `;
+            } catch (error) {
+                document.getElementById("result").innerHTML = `<p style="color:red;">エラー: ${error.message}</p>`;
+            }
         }
     </script>
 </body>
